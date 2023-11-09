@@ -85,6 +85,7 @@ import net.sourceforge.pmd.util.ResourceLoader;
 @Deprecated
 @InternalApi
 public class RuleSetReferenceId {
+
     private final boolean external;
     private final String ruleSetFileName;
     private final boolean allRules;
@@ -100,7 +101,6 @@ public class RuleSetReferenceId {
      *             If the ID contains a comma character.
      */
     public RuleSetReferenceId(final String id) {
-
         this(id, null);
     }
 
@@ -123,19 +123,21 @@ public class RuleSetReferenceId {
      *             RuleSetReferenceId.
      */
     public RuleSetReferenceId(final String id, final RuleSetReferenceId externalRuleSetReferenceId) {
-
-        if (externalRuleSetReferenceId != null && !externalRuleSetReferenceId.isExternal()) {
-            throw new IllegalArgumentException("Cannot pair with non-external <" + externalRuleSetReferenceId + ">.");
+        if (externalRuleSetReferenceId != null
+            && !externalRuleSetReferenceId.isExternal()) {
+            throw new IllegalArgumentException(
+                "Cannot pair with non-external <" +
+                externalRuleSetReferenceId + ">."
+            );
         }
-
         if (id != null && id.indexOf(',') >= 0) {
             throw new IllegalArgumentException(
-                    "A single RuleSetReferenceId cannot contain ',' (comma) characters: " + id);
+                "A single RuleSetReferenceId cannot contain " +
+                "',' (comma) characters: " + id
+            );
         }
-
         // Damn this parsing sucks, but my brain is just not working to let me
         // write a simpler scheme.
-
         if (isValidUrl(id)) {
             // A full RuleSet name
             external = true;
@@ -151,8 +153,7 @@ public class RuleSetReferenceId {
         } else {
             String tempRuleName = getRuleName(id);
             String tempRuleSetFileName = tempRuleName != null && id != null
-                    ? id.substring(0, id.length() - tempRuleName.length() - 1) : id;
-
+                ? id.substring(0, id.length() - tempRuleName.length() - 1) : id;
             if (isValidUrl(tempRuleSetFileName)) {
                 // remaining part is a xml ruleset file, so the tempRuleName is
                 // probably a real rule name
@@ -205,17 +206,24 @@ public class RuleSetReferenceId {
                     } else {
                         external = externalRuleSetReferenceId != null && externalRuleSetReferenceId.isExternal();
                         ruleSetFileName = externalRuleSetReferenceId != null
-                                ? externalRuleSetReferenceId.getRuleSetFileName() : null;
+                            ? externalRuleSetReferenceId.getRuleSetFileName() : null;
                         ruleName = id;
                         allRules = false;
                     }
                 }
             }
         }
-
-        if (this.external && this.ruleName != null && !this.ruleName.equals(id) && externalRuleSetReferenceId != null) {
+        if (this.external &&
+            this.ruleName != null &&
+            !this.ruleName.equals(id) &&
+            externalRuleSetReferenceId != null) {
             throw new IllegalArgumentException(
-                    "Cannot pair external <" + this + "> with external <" + externalRuleSetReferenceId + ">.");
+                "Cannot pair external <" +
+                this +
+                "> with external <" +
+                externalRuleSetReferenceId +
+                ">."
+            );
         }
         this.externalRuleSetReferenceId = externalRuleSetReferenceId;
     }
@@ -231,7 +239,8 @@ public class RuleSetReferenceId {
     private boolean checkRulesetExists(final String name) {
         boolean resourceFound = false;
         if (name != null) {
-            try (InputStream resource = new ResourceLoader().loadClassPathResourceAsStreamOrThrow(name)) {
+            try (InputStream resource = new ResourceLoader()
+                 .loadClassPathResourceAsStreamOrThrow(name)) {
                 resourceFound = true;
             } catch (Exception ignored) {
                 // ignored
@@ -284,7 +293,10 @@ public class RuleSetReferenceId {
         if (rulesetName != null) {
             // Find last path separator if it exists... this might be a rule
             // name
-            final int separatorIndex = Math.max(rulesetName.lastIndexOf('/'), rulesetName.lastIndexOf('\\'));
+            final int separatorIndex = Math.max(
+                rulesetName.lastIndexOf('/'),
+                rulesetName.lastIndexOf('\\')
+            );
             if (separatorIndex >= 0 && separatorIndex != rulesetName.length() - 1) {
                 result = rulesetName.substring(separatorIndex + 1);
             }
@@ -297,15 +309,16 @@ public class RuleSetReferenceId {
         if (stripped == null) {
             return false;
         }
-
-        return stripped.startsWith("http://") || stripped.startsWith("https://");
+        return stripped.startsWith("http://")
+            || stripped.startsWith("https://");
     }
 
     private static boolean isValidUrl(String name) {
         if (isHttpUrl(name)) {
             String url = StringUtils.strip(name);
             try {
-                // FIXME : Do we really need to perform a request? if it's a url we should treat it as one even if the server is down
+                // FIXME : Do we really need to perform a request?
+                // if it's a url we should treat it as one even if the server is down
                 HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setRequestMethod("HEAD");
                 connection.setConnectTimeout(ResourceLoader.TIMEOUT);
@@ -322,7 +335,6 @@ public class RuleSetReferenceId {
     }
 
     private static boolean isFullRuleSetName(String name) {
-
         return name != null && name.endsWith(".xml");
     }
 
@@ -337,7 +349,6 @@ public class RuleSetReferenceId {
     public static List<RuleSetReferenceId> parse(String referenceString) {
         List<RuleSetReferenceId> references = new ArrayList<>();
         if (referenceString != null && referenceString.trim().length() > 0) {
-
             if (referenceString.indexOf(',') == -1) {
                 references.add(new RuleSetReferenceId(referenceString));
             } else {
@@ -403,11 +414,13 @@ public class RuleSetReferenceId {
     public InputStream getInputStream(final ResourceLoader rl) throws RuleSetNotFoundException {
         if (externalRuleSetReferenceId == null) {
             InputStream in = StringUtils.isBlank(ruleSetFileName) ? null
-                    : rl.loadResourceAsStream(ruleSetFileName);
+                : rl.loadResourceAsStream(ruleSetFileName);
             if (in == null) {
-                throw new RuleSetNotFoundException("Can't find resource '" + ruleSetFileName + "' for rule '" + ruleName
-                        + "'" + ".  Make sure the resource is a valid file or URL and is on the CLASSPATH. "
-                        + "Here's the current classpath: " + System.getProperty("java.class.path"));
+                throw new RuleSetNotFoundException(
+                    "Can't find resource '" + ruleSetFileName + "' for rule '" + ruleName
+                    + "'" + ".  Make sure the resource is a valid file or URL and is on the CLASSPATH. "
+                    + "Here's the current classpath: " + System.getProperty("java.class.path")
+                );
             }
             return in;
         } else {
@@ -431,7 +444,6 @@ public class RuleSetReferenceId {
             } else {
                 return ruleSetFileName + '/' + ruleName;
             }
-
         } else {
             if (allRules) {
                 return "anonymous all Rule";

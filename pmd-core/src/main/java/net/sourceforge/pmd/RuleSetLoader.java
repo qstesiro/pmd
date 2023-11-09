@@ -116,7 +116,6 @@ public final class RuleSetLoader {
         );
     }
 
-
     /**
      * Parses and returns a ruleset from its location. The location may
      * be a file system path, or a resource path (see {@link #loadResourcesWith(ClassLoader)}).
@@ -179,7 +178,7 @@ public final class RuleSetLoader {
      */
     public static RuleSetLoader fromPmdConfig(PMDConfiguration configuration) {
         return new RuleSetLoader().filterAbovePriority(configuration.getMinimumPriority())
-                                  .enableCompatibility(configuration.isRuleSetFactoryCompatibilityEnabled());
+            .enableCompatibility(configuration.isRuleSetFactoryCompatibilityEnabled());
     }
 
 
@@ -201,7 +200,8 @@ public final class RuleSetLoader {
         for (Language language : LanguageRegistry.findWithRuleSupport()) {
             Properties props = new Properties();
             rulesetsProperties = "category/" + language.getTerseName() + "/categories.properties";
-            try (InputStream inputStream = resourceLoader.loadClassPathResourceAsStreamOrThrow(rulesetsProperties)) {
+            try (InputStream inputStream = resourceLoader
+                     .loadClassPathResourceAsStreamOrThrow(rulesetsProperties)) {
                 props.load(inputStream);
                 String rulesetFilenames = props.getProperty("rulesets.filenames");
                 if (rulesetFilenames != null) {
@@ -209,18 +209,26 @@ public final class RuleSetLoader {
                 }
             } catch (RuleSetNotFoundException e) {
                 if (LOG.isLoggable(Level.FINE)) {
-                    LOG.fine("The language " + language.getTerseName() + " provides no " + rulesetsProperties + ".");
+                    LOG.fine(
+                        "The language " +
+                        language.getTerseName() +
+                        " provides no " +
+                        rulesetsProperties +
+                        "."
+                    );
                 }
             } catch (IOException ioe) {
                 if (LOG.isLoggable(Level.FINE)) {
-                    LOG.fine("Couldn't read " + rulesetsProperties
-                                 + "; please ensure that the directory is on the classpath. The current classpath is: "
-                                 + System.getProperty("java.class.path"));
+                    LOG.fine(
+                        "Couldn't read " +
+                        rulesetsProperties +
+                        "; please ensure that the directory is on the classpath. The current classpath is: " +
+                        System.getProperty("java.class.path")
+                    );
                     LOG.fine(ioe.toString());
                 }
             }
         }
-
         List<RuleSet> ruleSets = new ArrayList<>();
         for (RuleSetReferenceId id : ruleSetReferenceIds) {
             ruleSets.add(loadFromResource(id)); // may throw
